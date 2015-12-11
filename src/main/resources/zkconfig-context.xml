@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:c="http://www.springframework.org/schema/c"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<bean id="zkconfig" class="com.chanjet.ccs.base.entity.ZKConfig"/>
+
+	<bean id="configProfile" class="com.dangdang.config.service.zookeeper.ZookeeperConfigProfile">
+		<constructor-arg name="connectStr" value="#{zkconfig.connectionString}" />
+		<constructor-arg name="rootNode" value="#{zkconfig.rootNode}" />
+		<constructor-arg name="version" value="#{zkconfig.version}" />
+	</bean>
+
+	<bean id="zookeeperSources" class="com.dangdang.config.service.support.spring.ConfigGroupSourceFactory" factory-method="create">
+		<constructor-arg name="configGroups">
+			<list>
+				<bean class="com.dangdang.config.service.zookeeper.ZookeeperConfigGroup" c:configProfile-ref="configProfile" c:node="db" />
+				<bean class="com.dangdang.config.service.zookeeper.ZookeeperConfigGroup" c:configProfile-ref="configProfile" c:node="mq" />
+				<bean class="com.dangdang.config.service.zookeeper.ZookeeperConfigGroup" c:configProfile-ref="configProfile" c:node="redis" />
+			</list>
+		</constructor-arg>
+	</bean>
+
+	<bean class="org.springframework.context.support.PropertySourcesPlaceholderConfigurer">
+		<property name="order" value="1" />
+		<property name="ignoreUnresolvablePlaceholders" value="true" />
+		<property name="propertySources" ref="zookeeperSources" />
+	</bean>
+	<!-- spring注入voicechannel配置 -->  
+    <bean id="voiceParam" class="com.dangdang.config.service.zookeeper.ZookeeperConfigGroup">
+		<constructor-arg name="configProfile" ref="configProfile" />
+		<constructor-arg name="node" value="voice" />
+    </bean> 
+
+</beans>

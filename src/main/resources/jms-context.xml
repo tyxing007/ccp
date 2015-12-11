@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans.xsd">
+	<!--    
+	<bean 
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="location" value="classpath:datasource.properties"/>
+	</bean>
+	-->
+	
+	<bean id="jmsFactory" class="org.apache.activemq.pool.PooledConnectionFactory"
+		destroy-method="stop">
+		<property name="connectionFactory">
+			<bean class="org.apache.activemq.ActiveMQConnectionFactory">
+				<property name="brokerURL" value="${mq.brokerURL}"/>
+				<property name="userName" value="${mq.userName}"/>
+				<property name="password" value="${mq.password}"/>
+				<property name="useAsyncSend" value="true"/>
+				<property name="dispatchAsync" value="true"/>
+			</bean>
+		</property>
+		<property name="maxConnections" value="20"/>
+	</bean>
+	
+	<bean id="destination" class="org.apache.activemq.command.ActiveMQQueue">
+		<constructor-arg index="0" value="${mq.messageTopic}" />
+	</bean>
+	
+	<bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate">
+		<property name="connectionFactory" ref="jmsFactory"/>
+		<property name="defaultDestination" ref="destination"/>
+		<property name="pubSubDomain" value="false" />
+	</bean>
+	
+	<bean id="messageSender" class="com.chanjet.ccs.ccp.activemq.ActivemqMessageSender">
+		<constructor-arg index="0" ref="jmsTemplate"/>
+	</bean>
+	
+</beans>
